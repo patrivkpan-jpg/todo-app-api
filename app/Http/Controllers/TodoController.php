@@ -17,13 +17,24 @@ class TodoController extends Controller
     public function index(Request $request)
     {
         $data = $request->all();
-        $query = TodoModel::with('prev');
-        if (isset($data['user_id']) === true) {
-            $query->where('user_id', $data['user_id'])
-                ->whereNull('next_id');
+        $validator = Validator::make($data, [ 
+            'user_id' => [
+                'sometimes',
+                'integer',
+                'exists:todo',
+            ]
+        ]);
+        if ($validator->fails()) {
+            return response()->json(parent::response('FAIL', 'Validation failed.', $validator->errors()), 422);
         }
-        $response = $this->sortTodo($query->first()->toArray());
-        return response()->json(parent::response('SUCCESS', 'Successfully retrieved todo items.', $response), 200);
+
+        $query = TodoModel::with('prev')
+            ->whereNull('next_id');
+        if (isset($data['user_id']) === true) {
+            $query->where('user_id', $data['user_id']);
+        }
+        $response = $this->sortTodo($query->get()->toArray());
+        return response()->json(parent::response('SUCCESS', 'Successfully retrieved tasks.', $response), 200);
     }
 
     /**
@@ -31,14 +42,17 @@ class TodoController extends Controller
      */
     private function sortTodo($todo)
     {
-        $prev = array_merge([], $todo['prev']);
-        unset($todo['prev']);
-        $sorted[] = $todo;
-        while (empty($prev) === false) {
-            $old_prev = array_merge([], $prev);
-            unset($old_prev['prev']);
-            $sorted[] = $old_prev;
-            $prev = array_merge([], $prev['prev'] ?? []);
+        $sorted = [];
+        foreach ($todo as $task) {
+            $prev = array_merge([], $task['prev']);
+            unset($task['prev']);
+            $sorted[] = $task;
+            while (empty($prev) === false) {
+                $old_prev = array_merge([], $prev);
+                unset($old_prev['prev']);
+                $sorted[] = $old_prev;
+                $prev = array_merge([], $prev['prev'] ?? []);
+            }
         }
         return array_reverse($sorted);
     }
