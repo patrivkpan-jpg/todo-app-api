@@ -229,19 +229,7 @@ class TodoController extends Controller
             return response()->json(parent::response('FAIL', 'Id is already the root task id.'), 422);
         }
 
-        TodoModel::where('id', $old_prev['id'] ?? 0)
-            ->update([
-                'next_id' => $task['next_id']
-        ]);
-        TodoModel::where('id', $id)
-            ->update([
-                'next_id' => $user['root_task_id']
-        ]);
-        UserModel::where('id', $task['user_id'])
-            ->where('root_task_id', $user['root_task_id'])
-            ->update([
-                'root_task_id' => $id
-        ]);
+        $this->updateIdValues($old_prev['id'] ?? 0, $task['next_id'], $id, $user['root_task_id'], $task['user_id'], $user['root_task_id'], $id);
 
         return response()->json(parent::response('SUCCESS', 'Successfully reordered todo item.', $this->get($id)), 200);
     }
@@ -260,25 +248,32 @@ class TodoController extends Controller
             return response()->json(parent::response('FAIL', 'User id of the new prev should be the same as the user id of reordered todo item.'), 422);
         }
 
-        TodoModel::where('id', $old_prev['id'] ?? 0)
-            ->update([
-                'next_id' => $task['next_id']
-            ]);
         TodoModel::where('id', $new_prev['id'])
             ->update([
                 'next_id' => $id
             ]);
-        TodoModel::where('id', $id)
-            ->update([
-                'next_id' => $new_prev['next_id']
-            ]);
-
-        UserModel::where('id', $task['user_id'])
-            ->where('root_task_id', $id)
-            ->update([
-                'root_task_id' => $task['next_id']
-        ]);
+        $this->updateIdValues($old_prev['id'] ?? 0, $task['next_id'], $id, $new_prev['next_id'], $task['user_id'], $id, $task['next_id']);
 
         return response()->json(parent::response('SUCCESS', 'Successfully reordered todo item.', $this->get($id)), 200);
+    }
+
+    /**
+     * Update various shared id values.
+     */
+    private function updateIdValues($old_prev_id, $old_prev_next_id, $id, $next_id, $user_id, $old_root_task_id, $new_root_task_id)
+    {
+        TodoModel::where('id', $old_prev_id)
+            ->update([
+                'next_id' => $old_prev_next_id
+        ]);
+        TodoModel::where('id', $id)
+            ->update([
+                'next_id' =>$next_id
+        ]);
+        UserModel::where('id', $user_id)
+            ->where('root_task_id', $old_root_task_id)
+            ->update([
+                'root_task_id' => $new_root_task_id
+        ]);
     }
 }
