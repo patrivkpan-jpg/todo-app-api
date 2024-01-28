@@ -204,10 +204,14 @@ class TodoController extends Controller
 
         try {
             $prev_id = $data['prev_id'] ?? null;
+            $old_prev = TodoModel::where('next_id', $id)
+                ->first();
+            $task = TodoModel::where('id', $id)
+                ->first();
             if (isset($prev_id) === true) {
-                return $this->reorderNormally($prev_id, $id);
+                return $this->reorderNormally($old_prev, $task, $prev_id, $id);
             }
-            return $this->reorderToRoot($id);
+            return $this->reorderToRoot($old_prev, $task, $id);
         } catch (Exception $e) {
             Log::info($e->getMessage());
             return response()->json(parent::response('FAIL', 'Something went wrong with the request.'), 400);
@@ -217,15 +221,9 @@ class TodoController extends Controller
     /**
      * Move task to root.
      */
-    private function reorderToRoot(string $id)
+    private function reorderToRoot($old_prev, $task, string $id)
     {
-        $old_prev = TodoModel::where('next_id', $id)
-            ->first();
-
-        $item = TodoModel::where('id', $id)
-            ->first();
-
-        $user = UserModel::where('id', $item['user_id'])
+        $user = UserModel::where('id', $task['user_id'])
             ->first();
         if ((int)$id === $user['root_task_id']) {
             return response()->json(parent::response('FAIL', 'Id is already the root task id.'), 422);
@@ -233,13 +231,13 @@ class TodoController extends Controller
 
         TodoModel::where('id', $old_prev['id'] ?? 0)
             ->update([
-                'next_id' => $item['next_id']
+                'next_id' => $task['next_id']
         ]);
         TodoModel::where('id', $id)
             ->update([
                 'next_id' => $user['root_task_id']
         ]);
-        UserModel::where('id', $item['user_id'])
+        UserModel::where('id', $task['user_id'])
             ->where('root_task_id', $user['root_task_id'])
             ->update([
                 'root_task_id' => $id
@@ -251,26 +249,20 @@ class TodoController extends Controller
     /**
      * Move task to anywhere other than root
      */
-    private function reorderNormally(string $prev_id, string $id)
+    private function reorderNormally($old_prev, $task, string $prev_id, string $id)
     {
-        $old_prev = TodoModel::where('next_id', $id)
-            ->first();
-
         $new_prev = TodoModel::where('id', $prev_id)
             ->first();
         if (isset($old_prev) === true && $new_prev['id'] === $old_prev['id']) {
             return response()->json(parent::response('FAIL', 'Id of new prev should not be the same as id of old prev.'), 422);
         }
-
-        $item = TodoModel::where('id', $id)
-            ->first();
-        if ($new_prev['user_id'] !== $item['user_id']) {
+        if ($new_prev['user_id'] !== $task['user_id']) {
             return response()->json(parent::response('FAIL', 'User id of the new prev should be the same as the user id of reordered todo item.'), 422);
         }
 
         TodoModel::where('id', $old_prev['id'] ?? 0)
             ->update([
-                'next_id' => $item['next_id']
+                'next_id' => $task['next_id']
             ]);
         TodoModel::where('id', $new_prev['id'])
             ->update([
@@ -281,10 +273,10 @@ class TodoController extends Controller
                 'next_id' => $new_prev['next_id']
             ]);
 
-        UserModel::where('id', $item['user_id'])
+        UserModel::where('id', $task['user_id'])
             ->where('root_task_id', $id)
             ->update([
-                'root_task_id' => $item['next_id']
+                'root_task_id' => $task['next_id']
         ]);
 
         return response()->json(parent::response('SUCCESS', 'Successfully reordered todo item.', $this->get($id)), 200);
