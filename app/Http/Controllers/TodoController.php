@@ -7,17 +7,39 @@ use App\Models\TodoModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class TodoController extends Controller
 {
     /**
      * Display all todo items.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $response = TodoModel::all();
+        $data = $request->all();
+        $query = TodoModel::with('prev');
+        if (isset($data['user_id']) === true) {
+            $query->where('user_id', $data['user_id'])
+                ->whereNull('next_id');
+        }
+        $response = $this->sortTodo($query->first()->toArray());
         return response()->json($response, 200);
+    }
+
+    /**
+     * Sorts the todo list in order.
+     */
+    private function sortTodo($todo)
+    {
+        $prev = array_merge([], $todo['prev']);
+        unset($todo['prev']);
+        $sorted[] = $todo;
+        while (empty($prev) === false) {
+            $old_prev = array_merge([], $prev);
+            unset($old_prev['prev']);
+            $sorted[] = $old_prev;
+            $prev = array_merge([], $prev['prev'] ?? []);
+        }
+        return array_reverse($sorted);
     }
 
     /**
@@ -65,14 +87,6 @@ class TodoController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified todo item.
      */
     public function update(Request $request, string $id)
@@ -105,7 +119,7 @@ class TodoController extends Controller
         try {
             $response = TodoModel::where('id', $id)
                 ->update($data);
-            return response()->json($response, 200);
+            return response()->json($data, 200);
         } catch (Exception $e) {
             Log::info($e->getMessage());
             return response()->json('Something went wrong with the request.', 400);
