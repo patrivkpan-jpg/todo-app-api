@@ -28,6 +28,7 @@ class TodoController extends Controller
             return response()->json(parent::response('FAIL', 'Validation failed.', $validator->errors()), 422);
         }
 
+        // Get the tail of the list with it's parent recursively
         $query = TodoModel::with('prev')
             ->whereNull('next_id');
         if (isset($data['user_id']) === true) {
@@ -43,10 +44,13 @@ class TodoController extends Controller
     private function sortTodo($todo)
     {
         $sorted = [];
+        // Loop through all tails
         foreach ($todo as $task) {
+            // Set $prev as the parent and insert the current node in the $sorted array
             $prev = array_merge([], $task['prev']);
             unset($task['prev']);
             $sorted[] = $task;
+            // Do the same for all parents until current value of $prev is null
             while (empty($prev) === false) {
                 $old_prev = array_merge([], $prev);
                 unset($old_prev['prev']);
@@ -62,7 +66,6 @@ class TodoController extends Controller
      */
     public function store(Request $request)
     {
-        //
         $data = $request->all();
         $validator = Validator::make($data, [ 
             'label' => [
@@ -88,12 +91,14 @@ class TodoController extends Controller
                 ->first();
             $data['next_id'] = null;
             $response = TodoModel::create($data);
+            // If not the first task, update the next_id of the task's parent
             if (empty($prev) === false) {
                 TodoModel::where('id', $prev['id'])
                     ->update([
                         'next_id' => $response['id']
                     ]);
             } else {
+                // If first task to be inserted for the user, update user's root_task_id (id of first task)
                 UserModel::find($data['user_id'])
                     ->update(
                         ['root_task_id' => $response['id']]
@@ -181,10 +186,12 @@ class TodoController extends Controller
         try {
             $item = TodoModel::where('id', $id)
                 ->first();
+            // Update the next_id of the task's parent
             TodoModel::where('next_id', $id)
                 ->update([
                     'next_id' => $item['next_id']
                 ]);
+            // If task to be deleted is root task, update user's root_task_id (id of first task)
             UserModel::where('id', $item['user_id'])
                 ->where('root_task_id', $id)
                 ->update([
@@ -222,6 +229,7 @@ class TodoController extends Controller
                 ->first();
             $task = TodoModel::where('id', $id)
                 ->first();
+            // If prev_id is not included in the request, the code will assume that we will move the task to the root. (meaning it will become the first task)
             if (isset($prev_id) === true) {
                 return $this->reorderNormally($old_prev, $task, $prev_id, $id);
             }
@@ -239,10 +247,12 @@ class TodoController extends Controller
     {
         $user = UserModel::where('id', $task['user_id'])
             ->first();
+        // Check if task is already the root task
         if ((int)$id === $user['root_task_id']) {
             return response()->json(parent::response('FAIL', 'Id is already the root task id.'), 422);
         }
 
+        // Update required id values such as next_id, old parent's next_id, and user's root_task_id
         $this->updateIdValues($old_prev['id'] ?? 0, $task['next_id'], $id, $user['root_task_id'], $task['user_id'], $user['root_task_id'], $id);
 
         return response()->json(parent::response('SUCCESS', 'Successfully reordered todo item.', $this->get($id)), 200);
@@ -255,13 +265,16 @@ class TodoController extends Controller
     {
         $new_prev = TodoModel::where('id', $prev_id)
             ->first();
+        // Check if old parent and new parent are the same
         if (isset($old_prev) === true && $new_prev['id'] === $old_prev['id']) {
             return response()->json(parent::response('FAIL', 'Id of new prev should not be the same as id of old prev.'), 422);
         }
+        // Check if the new parent has the same user_id as the task to be moved
         if ($new_prev['user_id'] !== $task['user_id']) {
             return response()->json(parent::response('FAIL', 'User id of the new prev should be the same as the user id of reordered todo item.'), 422);
         }
 
+        // Update required id values such as next_id, old parent's next_id, parent's next_id, and user's root_task_id
         TodoModel::where('id', $new_prev['id'])
             ->update([
                 'next_id' => $id
@@ -276,14 +289,17 @@ class TodoController extends Controller
      */
     private function updateIdValues($old_prev_id, $old_prev_next_id, $id, $next_id, $user_id, $old_root_task_id, $new_root_task_id)
     {
+        // Update old parent's next_id
         TodoModel::where('id', $old_prev_id)
             ->update([
                 'next_id' => $old_prev_next_id
         ]);
+        // Update task's next_id
         TodoModel::where('id', $id)
             ->update([
                 'next_id' =>$next_id
         ]);
+        // Update user's root_task_id
         UserModel::where('id', $user_id)
             ->where('root_task_id', $old_root_task_id)
             ->update([
