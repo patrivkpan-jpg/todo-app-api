@@ -22,7 +22,7 @@ class TodoController extends Controller
                 ->whereNull('next_id');
         }
         $response = $this->sortTodo($query->first()->toArray());
-        return response()->json($response, 200);
+        return response()->json(parent::response('SUCCESS', 'Successfully retrieved todo items.', $response), 200);
     }
 
     /**
@@ -64,7 +64,7 @@ class TodoController extends Controller
             ]
         ]);
         if ($validator->fails()) {
-          return response()->json($validator->errors(), 422);
+          return response()->json(parent::response('FAIL', 'Validation failed.', $validator->errors()), 422);
         }
 
         try {
@@ -79,10 +79,10 @@ class TodoController extends Controller
                         'next_id' => $response['id']
                     ]);
             }
-            return response()->json($response, 200);
+            return response()->json(parent::response('SUCCESS', 'Successfully created new todo item.', $response), 200);
         } catch (Exception $e) {
             Log::info($e->getMessage());
-            return response()->json('Something went wrong with the request.', 400);
+            return response()->json(parent::response('FAIL', 'Something went wrong with the request.'), 400);
         }
     }
 
@@ -113,17 +113,25 @@ class TodoController extends Controller
             ]
         ]);
         if ($validator->fails()) {
-          return response()->json($validator->errors(), 422);
+            return response()->json(parent::response('FAIL', 'Validation failed.', $validator->errors()), 422);
         }
 
         try {
-            $response = TodoModel::where('id', $id)
+            TodoModel::where('id', $id)
                 ->update($data);
-            return response()->json($data, 200);
+            return response()->json(parent::response('SUCCESS', 'Successfully updated todo item.', $this->get($id)), 200);
         } catch (Exception $e) {
             Log::info($e->getMessage());
-            return response()->json('Something went wrong with the request.', 400);
+            return response()->json(parent::response('FAIL', 'Something went wrong with the request.'), 400);
         }
+    }
+
+    /**
+     * Get a todo item by id.
+     */
+    private function get(string $id)
+    {
+        return TodoModel::find($id);
     }
 
     /**
@@ -138,11 +146,11 @@ class TodoController extends Controller
                 ->update([
                     'next_id' => $item['next_id']
                 ]);
-            $response = TodoModel::destroy($id);
-            return response()->json($response, 200);
+            TodoModel::destroy($id);
+            return response()->json(parent::response('SUCCESS', 'Successfully deleted todo item.'), 200);
         } catch (Exception $e) {
             Log::info($e->getMessage());
-            return response()->json('Something went wrong with the request.', 400);
+            return response()->json(parent::response('FAIL', 'Something went wrong with the request.'), 400);
         }
     }
 
@@ -161,7 +169,7 @@ class TodoController extends Controller
             ]
         ]);
         if ($validator->fails()) {
-          return response()->json($validator->errors(), 422);
+            return response()->json(parent::response('FAIL', 'Validation failed.', $validator->errors()), 422);
         }
 
         try {
@@ -170,12 +178,12 @@ class TodoController extends Controller
             $new_prev = TodoModel::where('id', $data['prev_id'])
                 ->first();
             if ($new_prev['id'] === $old_prev['id']) {
-                return response()->json('Cannot reorder todo item with given the prev id.', 422);
+                return response()->json(parent::response('FAIL', 'Id of new prev should not be the same as id of old prev.'), 422);
             }
             $item = TodoModel::where('id', $id)
                 ->first();
             if ($new_prev['user_id'] !== $item['user_id']) {
-                return response()->json('Cannot reorder todo item with given the prev id.', 422);
+                return response()->json(parent::response('FAIL', 'User id of the new prev should be the same as the user id of reordered todo item.'), 422);
             }
             TodoModel::where('id', $old_prev['id'])
                 ->update([
@@ -189,10 +197,10 @@ class TodoController extends Controller
                 ->update([
                     'next_id' => $new_prev['next_id']
                 ]);
-            return response()->json([$old_prev, $new_prev, $item], 200);
+            return response()->json(parent::response('SUCCESS', 'Successfully reordered todo item.', $this->get($id)), 200);
         } catch (Exception $e) {
             Log::info($e->getMessage());
-            return response()->json('Something went wrong with the request.', 400);
+            return response()->json(parent::response('FAIL', 'Something went wrong with the request.'), 400);
         }
     }
 }
