@@ -16,6 +16,10 @@ return new class extends Migration
             $table->string('name', 255);
             $table->string('username', 255);
             $table->string('password', 255);
+            $table->foreignId('root_task_id')
+                ->nullable()
+                ->references('id')
+                ->on('todo');
             $table->timestamps();
         });
         Schema::table('todo', function (Blueprint $table) {
