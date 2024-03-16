@@ -1,0 +1,128 @@
+/* #222831
+#31363f
+#76abae
+#eee */
+
+html, body, #root {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #222831;
+}
+
+h1, h2, h3, h4, p {
+    margin: 0;
+    padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+    color: #eee;
+    text-shadow: -1px -1px 0 #222831, 1px -1px 0 #222831, -1px 1px 0 #222831, 1px 1px 0 #222831;
+}
+
+h1 {
+    font-weight: 800;
+    font-size: 28px;
+}
+
+h2 {
+    font-weight: 800;
+    font-size: 20px;
+}
+
+h3 {
+    font-weight: 800;
+    font-size: 18px;
+}
+
+h4 {
+    font-weight: 400;
+    font-size: 16px;
+}
+
+p {
+    font-weight: 400;
+    font-size: 18px;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    margin: 0 auto;
+    background-color: #31363f;
+}
+
+.banner {
+    display: flex;
+    height: 10em;
+    width: 80%;
+    margin: 10% auto;
+    background-color: #76abae;
+}
+
+.banner h1 {
+    margin: auto;
+}
+
+.task-list {
+    position: relative;
+    top: 10%;
+    height: 100%;
+    margin: 0 10% 10%;
+}
+
+.task-item-cont {
+    height: 10em;
+    padding: 1em;
+    background-color: #76abae;
+    border-bottom: 1px solid #31363f;
+}
+
+.task-item {
+    height: 100%;
+    position: relative;
+    display: flex;
+}
+
+.task-item-edit {
+    position: absolute;
+    right: 0;
+}
+
+.task-item-edit i {
+    color: #eee;
+    text-shadow: -1px -1px 0 #222831, 1px -1px 0 #222831, -1px 1px 0 #222831, 1px 1px 0 #222831;
+    cursor: pointer;
+}
+
+.task-item-duration {
+    position: absolute;
+    bottom: 0;
+}
+
+.task-item-duration h4 {
+    font-weight: 600;
+}
+
+.task-item-duration p {
+    font-size: 16px;
+}
+
+.task-item-drag {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.task-item-drag i {
+    font-size: 20px;
+    color: #eee;
+    text-shadow: -1px -1px 0 #222831, 1px -1px 0 #222831, -1px 1px 0 #222831, 1px 1px 0 #222831;
+    cursor: grab;
+}
+
+@media only screen and (min-width: 992px) {
+    .main {
+        width: 30%;
+    }
+} 
