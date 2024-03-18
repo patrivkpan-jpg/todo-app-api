@@ -1,7 +1,7 @@
 import TaskShow from "./TaskShow";
 import useTodoContext from "../../Hooks/use-todo-context";
 
-function TaskList () {
+function TaskList ({ onEditButtonClick }) {
 
     const { todo } = useTodoContext();
 
@@ -9,7 +9,7 @@ function TaskList () {
     // const todo = [1, 2]
     
     const renderedTaskList = todo.map((task) => {
-        return <TaskShow key={task} task={task} />
+        return <TaskShow key={task.id} task={task} onEditButtonClick={onEditButtonClick} />
     })
     return (
         <div className="task-list">
