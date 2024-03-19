@@ -47,8 +47,7 @@ function TodoContextProvider({ children }) {
         })
     }
 
-    // TODO: Dynamic task id to edit
-    const editTask = ({ label, description, duration }, id = 1) => {
+    const editTask = ({ id, label, description, duration }) => {
         let preparedData = prepareData(label, description, duration)
         console.log(preparedData)
         axios.put(`${BASE_URL}/${id}`, preparedData)

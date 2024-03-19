@@ -10,6 +10,15 @@ function TaskShow ({ task, onEditButtonClick }) {
         </p>
     </div>
 
+    const onEditClick = (event) => {
+        onEditButtonClick(event, {
+            id: task.id,
+            label: task.label,
+            description: task.description,
+            duration: task.duration,
+        })
+    }
+
     return (
         <div className="task-item-cont">
             <div className="task-item">
@@ -22,7 +31,7 @@ function TaskShow ({ task, onEditButtonClick }) {
                     </p>
                 </div>
                 <div className="task-item-edit">
-                    <i className="edit-task-button far fa-edit" onClick={onEditButtonClick}></i>
+                    <i className="edit-task-button far fa-edit" onClick={onEditClick}></i>
                 </div>
                 {duration}
                 <div className="task-item-drag">

@@ -11,12 +11,15 @@ function Home () {
 
     const [modalAction, setModalAction] = useState(() => addTask);
 
-    const openModal = (event) => {
+    const [modalTaskDetails, setModalTaskDetails] = useState({});
+
+    const openModal = (event, modalTaskDetails = {}) => {
         const actions = {
             'add-task-button' : () => addTask,
             'edit-task-button' : () => editTask
         }
         setModalAction(actions[event.target.classList[0]])
+        setModalTaskDetails(modalTaskDetails)
         toggleModal(true)
     }
 
@@ -36,9 +39,7 @@ function Home () {
             </div>
             <button className='add-task-button' onClick={openModal}>Add Task</button>
             <TaskList onEditButtonClick={openModal} />
-            <TaskModal modalOpen={isModalOpen} onModalClose={closeModal} action={modalAction} />
-            {/* <TaskAdd modalOpen={isModalOpen} onModalClose={closeModal} />
-            <TaskEdit modalOpen={isModalOpen} onModalClose={closeModal} />  */}
+            <TaskModal modalOpen={isModalOpen} onModalClose={closeModal} action={modalAction} taskDetails={modalTaskDetails} />
         </div>
     )
 }

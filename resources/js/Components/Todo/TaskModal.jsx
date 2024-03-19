@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import ReactModal from "react-modal";
 import useTodoContext from "../../Hooks/use-todo-context";
 
-function TaskModal ({ modalOpen, onModalClose, action }) {
+function TaskModal ({ modalOpen, onModalClose, action, taskDetails }) {
     
     const { editTask } = useTodoContext();
 
@@ -22,13 +22,16 @@ function TaskModal ({ modalOpen, onModalClose, action }) {
     };
 
     const [isOpen, setIsOpen] = useState(modalOpen)
+    
+    useEffect(() => {
+        setIsOpen(modalOpen)
+    }, [modalOpen])
 
-    // Add default values when editing
-    const [newTask, setNewTask] = useState({
-        label: '',
-        description: '',
-        duration: ''
-    })
+    const [newTask, setNewTask] = useState(taskDetails)
+    
+    useEffect(() => {
+        setNewTask(taskDetails)
+    }, [taskDetails])
 
     const onFormSubmit = (event) => {
         action(newTask)
@@ -50,10 +53,6 @@ function TaskModal ({ modalOpen, onModalClose, action }) {
         newTaskValues[taskKey[event.target.id]] = event.target.value
         setNewTask(newTaskValues)
     }
-    
-    useEffect(() => {
-        setIsOpen(modalOpen)
-    }, [modalOpen])
 
     return (
         <ReactModal isOpen={isOpen}
