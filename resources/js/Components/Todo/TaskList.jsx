@@ -35,6 +35,7 @@ function TaskList ({ onEditButtonClick }) {
         })
         const activeIdIndex = idList.indexOf(activeId)
         const overIdIndex = idList.indexOf(overId)
+        let prevId = overId;
         if (overIdIndex < activeIdIndex) {
             let prevTask = todoList.find(task => {
                 return task.next_id === overId

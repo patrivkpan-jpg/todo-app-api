@@ -77,7 +77,7 @@ function TodoContextProvider({ children }) {
     // }
 
     const reorderTask = ({ id, prev_id, idIndex, overIdIndex }) => {
-        console.log(id, prev_id)
+        // TODO: Fix this; set todo after retrieving new values from database
         setTodo(arrayMove(todo, idIndex, overIdIndex))
         axios.put(`${BASE_URL}/reorder/${id}`, {
             prev_id
