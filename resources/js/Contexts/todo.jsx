@@ -1,4 +1,5 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState } from "react";
+import { arrayMove } from "@dnd-kit/sortable";
 import axios from 'axios';
 
 const BASE_URL = 'http://todo-app.com/api/todo';
@@ -49,7 +50,6 @@ function TodoContextProvider({ children }) {
 
     const editTask = ({ id, label, description, duration }) => {
         let preparedData = prepareData(label, description, duration)
-        console.log(preparedData)
         axios.put(`${BASE_URL}/${id}`, preparedData)
         .then(function (response) {
             const updatedTodo = todo.map((task) => {
@@ -76,6 +76,16 @@ function TodoContextProvider({ children }) {
     //         })
     // }
 
+    const reorderTask = ({ id, prev_id, idIndex, overIdIndex }) => {
+        console.log(id, prev_id)
+        setTodo(arrayMove(todo, idIndex, overIdIndex))
+        axios.put(`${BASE_URL}/reorder/${id}`, {
+            prev_id
+        }).catch(function (error) {
+            console.log(error)
+        })
+    }
+
     const valueToShare = {
         todo,
         getTodo,
@@ -83,7 +93,8 @@ function TodoContextProvider({ children }) {
         toggleModal,
         addTask,
         editTask,
-        // deleteMenuItem
+        // deleteMenuItem,
+        reorderTask
     }
 
     return (

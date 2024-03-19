@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import useTodoContext from "../Hooks/use-todo-context";
 import TaskList from "../Components/Todo/TaskList";
-import TaskAdd from "../Components/Todo/TaskAdd";
-import TaskEdit from "../Components/Todo/TaskEdit";
 import TaskModal from "../Components/Todo/TaskModal";
 
 function Home () {

@@ -1,8 +1,23 @@
-import { useState } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities"
 
 function TaskShow ({ task, onEditButtonClick }) {
 
+    const {
+        attributes, 
+        listeners, 
+        setNodeRef, 
+        transform, 
+        transition
+    } = useSortable({ id: task.id })
+
+    const draggableStyle = {
+        transition,
+        transform: CSS.Transform.toString(transform)
+    }
+
     const duration = (task.duration === null) ? '' : 
+
     <div className="task-item-duration">
         <h4>Duration: </h4>
         <p>
@@ -14,17 +29,22 @@ function TaskShow ({ task, onEditButtonClick }) {
         onEditButtonClick(event, {
             id: task.id,
             label: task.label,
-            description: task.description,
-            duration: task.duration,
+            description: task.description ?? '',
+            duration: task.duration ?? '',
         })
     }
 
     return (
-        <div className="task-item-cont">
+        <div 
+        ref={setNodeRef}
+        style={draggableStyle}
+        {...attributes}
+        {...listeners}
+        className="task-item-cont">
             <div className="task-item">
                 <div className="task-item-details">
                     <h2>
-                        {task.label}
+                        {task.label} {task.id}
                     </h2>
                     <p>
                         {task.description}

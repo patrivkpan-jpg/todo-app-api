@@ -215,6 +215,7 @@ class TodoController extends Controller
             'prev_id' => [
                 'sometimes',
                 'integer',
+                'nullable',
                 'exists:todo,id',
                 'not_in:' . $id
             ]
